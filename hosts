@@ -1,0 +1,45 @@
+#!/usr/bin/env ruby
+
+require 'rubygems'
+require 'canine'
+
+Canine.new do
+	command :help, :commands
+
+	command :list, "Display the currently-blocked domains" do
+		list = `cat /etc/hosts | grep '127.0.0.1' | grep -v 'localhost'`
+		puts (list.empty?) ? "No hosts blocked" : list
+	end
+
+	command :allow, "Remove a domain from a blocklist" do |*hosts|
+		if hosts.empty? then
+			puts "Usage: hosts allow host1 [host2 ... hostN]"
+			exit
+		end
+		hosts.each { |host|
+			str = "127.0.0.1	"+host+"\n"
+			lines = IO.readlines("/etc/hosts").select { |l|
+				l != str
+			}
+			shellcommand = "sudo su <<EOF\ncat <<END > /etc/hosts\n#{lines.join}END\nEOF"
+			system(shellcommand)
+			puts "Removed #{host} from the blocklist"
+		}
+	end
+
+	command :block, "Block a domain using /etc/hosts" do |*hosts|
+		if hosts.empty? then
+			puts "Usage: hosts block host1 [host2 ... hostN]"
+			exit
+		end
+		hosts.each { |host|
+			str = "127.0.0.1	"+host
+			shellcommand = "sudo su <<EOF\necho '#{str}' >> /etc/hosts\nEOF"
+			system(shellcommand)
+			puts "Blocked #{host}"
+		}
+	end
+
+	alias_command :h => :help, :a => :allow, :b => :block, :l => :list
+	default_command :list
+end
