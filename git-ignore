@@ -1,0 +1,13 @@
+#!/bin/sh
+
+while [ ! -d '.git' ]; do
+	if [ "$(pwd)" = "/" ]; then
+		echo "Couldn't find a git repository"
+		exit 1
+	fi
+	cd ..
+done
+
+for file in "$@"; do
+	echo $file >> .gitignore
+done
