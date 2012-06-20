@@ -33,7 +33,8 @@ Canine.app do
 	end
 
 	option( 'to-ip' => 't', :default => '127.0.0.1', :desc =>
-		"Redeirect to a specified IP address" )
+		"Redeirect to a specified IP address", :validate => proc { |ip|
+			ip =~ /^\d{1,3}(\.\d{1,3}){3}$/ } )
 	cmd 'block' => "Block a domain using /etc/hosts" do |*hosts|
 		system(
 			"sudo su <<EOF\necho '#{
