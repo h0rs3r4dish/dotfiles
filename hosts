@@ -1,45 +1,46 @@
 #!/usr/bin/env ruby
 
 require 'rubygems'
-require 'canine'
+require 'canine-2'
 
-Canine.new do
-	command :help, :commands
-
-	command :list, "Display the currently-blocked domains" do
-		list = `cat /etc/hosts | grep '127.0.0.1' | grep -v 'localhost'`
-		puts (list.empty?) ? "No hosts blocked" : list
+Canine.app do
+	def redirect(to)
+		to.keys.map { |from|
+			"#{to[from]}\t#{from}"
+		}.join("\n")
 	end
 
-	command :allow, "Remove a domain from a blocklist" do |*hosts|
-		if hosts.empty? then
-			puts "Usage: hosts allow host1 [host2 ... hostN]"
-			exit
-		end
+	cmd 'list' => "Display the currently-blocked domains" do
+		list = File.readlines('/etc/hosts').select { |line|
+			line.include? '127.0.0.1'
+		}.select { |line| not line.include? 'localhost' }
+		puts (list.empty?) ? "No hosts blocked" : list.map { |line|
+			line.gsub(/^.*\t/,'')
+		}.join
+	end
+
+	cmd 'allow' => "Remove a domain from a blocklist" do |*hosts|
+		lines = IO.readlines("/etc/hosts")
 		hosts.each { |host|
-			str = "127.0.0.1	"+host+"\n"
-			lines = IO.readlines("/etc/hosts").select { |l|
-				l != str
+			lines.delete_if { |line|
+				line =~ /^\d{1,3}(\.\d{1,3}){3}\t#{host}/
 			}
-			shellcommand = "sudo su <<EOF\ncat <<END > /etc/hosts\n#{lines.join}END\nEOF"
-			system(shellcommand)
-			puts "Removed #{host} from the blocklist"
 		}
+		system(
+			"sudo su <<EOF\ncat <<END > /etc/hosts\n#{lines.join}END\nEOF"
+		)
+		puts "Removed #{hosts.join(', ')} from the blocklist"
 	end
 
-	command :block, "Block a domain using /etc/hosts" do |*hosts|
-		if hosts.empty? then
-			puts "Usage: hosts block host1 [host2 ... hostN]"
-			exit
-		end
-		hosts.each { |host|
-			str = "127.0.0.1	"+host
-			shellcommand = "sudo su <<EOF\necho '#{str}' >> /etc/hosts\nEOF"
-			system(shellcommand)
-			puts "Blocked #{host}"
-		}
+	option( 'to-ip' => 't', :default => '127.0.0.1', :desc =>
+		"Redeirect to a specified IP address" )
+	cmd 'block' => "Block a domain using /etc/hosts" do |*hosts|
+		system(
+			"sudo su <<EOF\necho '#{
+				hosts.map { |host|
+					redirect host => @options['to-ip']
+				}
+			}' >> /etc/hosts\nEOF"
+		)
 	end
-
-	alias_command :h => :help, :a => :allow, :b => :block, :l => :list
-	default_command :list
 end
