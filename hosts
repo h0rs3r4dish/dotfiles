@@ -7,16 +7,18 @@ Canine.app do
 	HOSTS_FILE = '/etc/hosts'
 	def redirect(to)
 		to.keys.map { |from|
-			"#{to[from]}\t#{from}"
+			"#{to[from]}\t#{from} # rbh"
 		}.join("\n")
 	end
 
+	default 'list'
+
 	cmd 'list' => "Display the currently-blocked domains" do
 		list = File.readlines(HOSTS_FILE).select { |line|
-			line.include? '127.0.0.1'
-		}.select { |line| not line.include? 'localhost' }
+			line.include? '# rbh'
+		}
 		puts (list.empty?) ? "No hosts blocked" : list.map { |line|
-			line.gsub(/^.*\t/,'')
+			line.gsub(/^.*\t/,'').sub('# rbh', '')
 		}.join
 	end
 
@@ -24,7 +26,7 @@ Canine.app do
 		lines = IO.readlines(HOSTS_FILE)
 		hosts.each { |host|
 			lines.delete_if { |line|
-				line =~ /^\d{1,3}(\.\d{1,3}){3}\t#{host}/
+				line.include?('# rbh') and line.include?(host)
 			}
 		}
 		system(
