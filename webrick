@@ -1,46 +1,19 @@
 #!/usr/bin/env ruby
 
 require 'webrick'
+require 'canine-2'
 
-$config = {
-	'port' => 1234,
-	'root' => '.'
-}
+Canine.app do
+	default 'server'
 
-if ARGV.first == 'help' then
-	puts <<EOF
-Usage: #{$0.split('/').last} [arg:val ..]
-
-Arguments
-#{$config.keys.map { |arg|
-	"\t%s:%s" % [arg, $config[arg].to_s]
-}.join("\n")
-  }
-EOF
-	exit 0
-end
-
-ARGV.each { |arg|
-	if arg =~ /^([^ ]+):([^ ]+)$/ then
-		opt = $1; val = $2
-		$config[opt] = if [true, false].include? $config[opt] then
-			if "t true".split(' ').include? val then
-				true
-			else
-				false
-			end
-		elsif $config[opt].class == Fixnum then
-			val.to_i
-		elsif $config[opt].class == String then
-			val
-		end
+	option( 'port' => 'p', :default => 1234,
+		:desc => "Port to open the server on" )
+	option( 'root' => 'r', :default => '.', :desc => "Directory to host",
+		:validate => proc { |dir| File.directory? dir } )
+	cmd 'server' => 'Open a WEBrick server at the specified directory' do
+		server = WEBrick::HTTPServer.new(:Port => @options['port'],
+			:DocumentRoot => File.expand_path(@options['root']))
+		trap 'INT' do server.shutdown end
+		server.start
 	end
-}
-
-server = WEBrick::HTTPServer.new(:Port => $config['port'],
-	:DocumentRoot => File.expand_path($config['root']))
-
-trap 'INT' do server.shutdown end
-
-puts "Starting server at #{File.expand_path $config['root']}:#{$config['port']}"
-server.start
+end
