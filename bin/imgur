@@ -1,0 +1,116 @@
+#!/usr/bin/env ruby
+
+require 'net/http'
+
+module Imgur
+	class Image
+		def initialize(id)
+			@id = id
+			@url = "http://i.imgur.com/#{id}"
+			@data = nil
+		end
+		def get_data
+			@data = Net::HTTP.get(URI.parse(@url+'.'+@fmt))
+		end
+		def save(location, format, message=false)
+			@fmt = format
+			puts "Saving #{@id}.#{format} from <#{@url}>" if message
+			get_data if @data.nil?
+			File.open("#{location}/#{@id}.#{format}", 'w') do |f|
+				f.puts @data
+			end
+		end
+	end
+	class Set
+		def initialize(id,url="a")
+			@id = id
+			@images = Net::HTTP.get(
+				URI.parse("http://imgur.com/#{url}/#{@id}")
+			).split("\n").select { |line|
+				line.scan('<a href="/download/').length > 0
+			}.map { |line|
+				Imgur::Image.new(
+					line.sub(/^[^"]*"/,'').sub(/".*$/,'').split('/').last
+				)
+			}
+		end
+		def get_data
+			@images.map { |img|
+				img.get_data
+			}
+		end
+		def save(location, format, message=false)
+			puts "Saving #{@images.length} images" if message
+			@images.map { |img|
+				img.save(location, format, message)
+			}
+		end
+	end
+end
+
+if __FILE__ == $0 then
+	help = <<EOF
+Usage: #{$0.split('/').last} [-ahov] id1 [idN...]
+
+Options
+  -a      The IDs are albums (default: off)
+  -f fmt  Image format (default: 'png')
+  -h      Help; display this message
+  -o dir  Save to 'dir', which is created if needed (default: '.')
+  -v      Be more verbose
+EOF
+	if ARGV.length == 0 then
+		puts help
+		exit 1
+	end
+	options = {
+		:a => false,	# album
+		:f => 'png',	# format
+		:h => false, 	# help
+		:o => '.',		# output directory
+		:v => false,	# verbose 
+	}
+	i = -1; while i < ARGV.length
+		if ARGV[i][i] != '-' then
+			i += 1
+			next
+		end
+
+		opt_a = ARGV[i].sub('-','')
+		((opt_a.length > 1) ? opt_a.split('') : [ opt_a ]).each { |opt|
+			opt = opt.intern
+
+			if not options.key? opt then
+				puts "Invalid option '#{ARGV[i]}', try -h"
+				exit 1
+			end
+
+			ARGV.delete_at i
+
+			options[opt] = if [true, false].include? options[opt] then
+				!options[opt]
+			elsif options[opt].class == Fixnum
+				arg = ARGV[i].to_i
+				ARGV.delete_at i
+				arg
+			else
+				arg = ARGV[i]
+				ARGV.delete_at i
+				arg
+			end
+		}
+	end
+	if options[:h] then
+		puts help
+		exit 0
+	end
+
+	system("mkdir #{options[:o]}") unless File.directory? options[:o]
+	ARGV.each { |imgur_id|
+		if options[:a] or imgur_id.include? ','  then
+			Imgur::Set.new(imgur_id).save(options[:o], options[:f], options[:v])
+		else
+			Imgur::Image.new(imgur_id).save(options[:o],options[:f],options[:v])
+		end
+	}
+end

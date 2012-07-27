@@ -1,0 +1,59 @@
+#!/usr/bin/env ruby
+
+require 'rubygems'
+require 'canine-2'
+
+Canine.app do
+	HOSTS_FILE = '/etc/hosts'
+	def redirect(to)
+		to.keys.map { |from|
+			"#{to[from]}\t#{from} # rbh"
+		}.join("\n")
+	end
+
+	default 'list'
+
+	cmd 'list' => "Display the currently-blocked domains" do
+		list = File.readlines(HOSTS_FILE).select { |line|
+			line.include? '# rbh'
+		}
+		puts (list.empty?) ? "No hosts blocked" : list.map { |line|
+			line.gsub(/^.*\t/,'').sub('# rbh', '')
+		}.join
+	end
+
+	cmd 'allow' => "Remove a domain from a blocklist" do |*hosts|
+		lines = IO.readlines(HOSTS_FILE)
+		hosts.each { |host|
+			lines.delete_if { |line|
+				line.include?('# rbh') and line.include?(host)
+			}
+		}
+		system(
+			"sudo su <<EOF\ncat <<END > #{HOSTS_FILE}\n#{lines.join}END\nEOF"
+		)
+		puts "Removed #{hosts.join(', ')} from the blocklist"
+	end
+
+	option( 'to-ip' => 't', :default => '127.0.0.1', :desc =>
+		"Redeirect to a specified IP address", :validate => proc { |ip|
+			ip.scan(/^\d{1,3}(\.\d{1,3}){3}$/).flatten.length > 0
+	} )
+	cmd 'block' => "Block a domain using #{HOSTS_FILE}" do |*hosts|
+		system(
+			"sudo su <<EOF\necho '#{
+				redirect Hash[*hosts.map { |host|
+					[ host, @options['to-ip'] ]
+				}.flatten ]
+			}' >> #{HOSTS_FILE}\nEOF"
+		)
+	end
+
+	option( 'editor' => 'e', :default => 'vim', :desc =>
+		"The editor to use to open #{HOSTS_FILE}", :validate => proc { |editor|
+			File.exist? editor
+	})
+	cmd 'edit' => "Open the hosts file in editor" do
+		system( "sudo #{@options['editor']} #{HOSTS_FILE}" )
+	end
+end
