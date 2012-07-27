@@ -40,6 +40,10 @@ map <leader>w :echo system("wc -w " . expand("%"))<cr>
 " Toggle line numbers
 nnoremap <silent> <leader>n :set nonumber!<cr>
 
+" Flip backspace and ^W (delete word)
+inoremap <BS> <C-W>
+inoremap <C-W> <BS>
+
 """ Ruby keymappings - r
 " Run tests
 map <leader>rt :!bin/test<cr>
