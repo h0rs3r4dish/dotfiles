@@ -1,9 +1,0 @@
-#!/bin/sh
-
-mkdir sandbox
-cd sandbox
-export PROMPT_GREY="sandbox"
-$SHELL
-cd ..
-rm -rf sandbox
-exit
