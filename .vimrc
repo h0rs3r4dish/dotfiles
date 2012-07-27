@@ -14,7 +14,10 @@ filetype plugin indent on
 " Tab and indent prefs
 set tabstop=4 shiftwidth=4
 set autoindent
-set cindent
+" set cindent " Not so much...
+
+" Allow buffer switching without saving
+set hidden
 
 " Things to make filesystem navigation easier
 let g:netrw_liststyle=3 " Tree listings instead of flat ones
