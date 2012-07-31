@@ -4,3 +4,6 @@
 [submodule ".vim/bundle/vim-textobj-rubyblock"]
 	path = .vim/bundle/vim-textobj-rubyblock
 	url = https://github.com/nelstrom/vim-textobj-rubyblock.git
+[submodule ".vim/bundle/smyck/colors"]
+	path = .vim/bundle/smyck/colors
+	url = https://github.com/hukl/Smyck-Color-Scheme.git
