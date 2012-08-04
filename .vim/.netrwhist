@@ -1,11 +1,3 @@
 let g:netrw_dirhistmax  =10
-let g:netrw_dirhist_cnt =9
-let g:netrw_dirhist_1='/Users/hr4dish/Documents/Programming/ruby/sandbox/zedsim'
-let g:netrw_dirhist_2='/Users/hr4dish/Documents/Programming/ruby/sandbox/zedsim/test'
-let g:netrw_dirhist_3='/Users/hr4dish/Documents/Programming/ruby/sandbox/zedsim/lib'
-let g:netrw_dirhist_4='/Users/hr4dish/Documents/Programming/ruby/sandbox/zedsim/bin'
-let g:netrw_dirhist_5='/Users/hr4dish/Documents/Programming/ruby/sandbox/zedsim'
-let g:netrw_dirhist_6='/Users/hr4dish/Documents/Programming/ruby/sandbox/zedsim/lib'
-let g:netrw_dirhist_7='/Users/hr4dish/Documents/Programming/ruby/sandbox/zedsim/lib/console'
-let g:netrw_dirhist_8='/Users/hr4dish/Documents/Programming/ruby/sandbox/zedsim'
-let g:netrw_dirhist_9='/Users/hr4dish'
+let g:netrw_dirhist_cnt =1
+let g:netrw_dirhist_1='/Users/hr4dish'

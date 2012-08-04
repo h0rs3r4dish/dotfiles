@@ -1,0 +1,9 @@
+#!/bin/sh
+
+if [ "$1" = "enable" ]; then
+	sudo networksetup -setdnsservers AirPort 149.154.158.186, 199.167.30.144
+elif [ "$1" = "disable" ]; then
+	sudo networksetup -setdnsservers AirPort 192.186.1.1
+else
+	echo "Usage: tunlr [enable|disable]"
+fi
