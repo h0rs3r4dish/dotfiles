@@ -107,7 +107,14 @@ EOF
 
 	system("mkdir #{options[:o]}") unless File.directory? options[:o]
 	ARGV.each { |imgur_id|
-		if options[:a] or imgur_id.include? ','  then
+		if imgur_id.include? ',' then
+			ARGV.delete imgur_id
+			imgur_id.split(',').each { |id|
+				ARGV.push id
+			}
+			next
+		end
+		if options[:a] then
 			Imgur::Set.new(imgur_id).save(options[:o], options[:f], options[:v])
 		else
 			Imgur::Image.new(imgur_id).save(options[:o],options[:f],options[:v])

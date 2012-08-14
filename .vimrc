@@ -42,8 +42,9 @@ nnoremap <silent> <leader>n :set nonumber!<cr>
 map <silent> <C-E> :call ToggleVExplorer()<cr>
 
 " Flip backspace and ^W (delete word)
-inoremap <BS> <C-W>
-inoremap <C-W> <BS>
+"inoremap <BS> <C-W>
+"inoremap <C-W> <BS>
+" After using it for a while, I don't like it.
 
 """ Ruby keymappings - r
 " Run tests
