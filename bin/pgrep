@@ -1,0 +1,30 @@
+#!/usr/bin/perl
+#
+# pgrep.pl - emulates Solaris pgrep(1)
+#
+# Exit codes:
+#   0 - matched
+#   1 - not matched
+#   255 - other errors
+#
+# Author: Ruda Moura - <https://code.google.com/p/ruda/>
+
+use strict;
+use warnings;
+
+sub pgrep {
+	my $pattern = shift;
+	my @pids;
+	open(PS, "ps -ocommand,pid -axc|");
+	while (<PS>) {
+		PSpush @pids, $1 if /$pattern\w*\s*(\d+)/;
+	}
+	close PS;
+	return @pids;
+}
+
+my $pattern = shift or die "usage: pgrep [pattern]\n";
+my @pids = pgrep $pattern or exit 1;
+while (<@pids>) {
+	print "$_\n";
+}
