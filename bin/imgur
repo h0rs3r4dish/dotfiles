@@ -30,7 +30,9 @@ module Imgur
 				line.scan('<a href="/download/').length > 0
 			}.map { |line|
 				Imgur::Image.new(
-					line.sub(/^[^"]*"/,'').sub(/".*$/,'').split('/').last
+					line.sub(/^[^"]*"/,'').sub(/".*$/,'').split('/').select { |bit|
+						bit.length == 5 and bit.index(' ').nil?
+					}.first
 				)
 			}
 		end
@@ -106,6 +108,10 @@ EOF
 	end
 
 	system("mkdir #{options[:o]}") unless File.directory? options[:o]
+	trap 'INT' do
+		puts "Stopping..."
+		exit 0
+	end
 	ARGV.each { |imgur_id|
 		if imgur_id.include? ',' then
 			ARGV.delete imgur_id
@@ -114,6 +120,7 @@ EOF
 			}
 			next
 		end
+		imgur_id = imgur_id.sub('http://','').sub('www.','').sub('imgur.com/','')
 		if options[:a] then
 			Imgur::Set.new(imgur_id).save(options[:o], options[:f], options[:v])
 		else
