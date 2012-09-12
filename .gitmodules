@@ -7,3 +7,6 @@
 [submodule ".vim/bundle/smyck/colors"]
 	path = .vim/bundle/smyck/colors
 	url = https://github.com/hukl/Smyck-Color-Scheme.git
+[submodule ".vim/bundle/vim-markdown"]
+	path = .vim/bundle/vim-markdown
+	url = https://github.com/plasticboy/vim-markdown.git

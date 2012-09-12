@@ -20,7 +20,7 @@ set hidden
 " Things to make filesystem navigation easier
 let g:netrw_liststyle = 3 " Tree listings instead of flat ones
 let g:netrw_list_hide = '.*\.swp$,^\.DS_Store$' " Hide swap files
-let g:netrw_browse_split = 4 " Open files in last window (like 'P')
+"let g:netrw_browse_split = 4 " Open files in last window (like 'P')
 set nowildmenu " Ensure this is off, because it sucks
 set wildmode=list:longest " Display the list of possible autocompletions
 
@@ -34,12 +34,12 @@ let mapleader=","  " They start with ,
 
 " Tab completion; Shift-Tab still inserts a tab.
 imap <Tab> <C-P>
-" word count
-map <leader>w :echo system("wc -w " . expand("%"))<cr>
 " Toggle line numbers
 nnoremap <silent> <leader>n :set nonumber!<cr>
 " Toggle vertical netrw
 map <silent> <C-E> :call ToggleVExplorer()<cr>
+" word count
+map <leader>wc :echo system("wc -w " . expand("%"))<cr>
 
 " Flip backspace and ^W (delete word)
 "inoremap <BS> <C-W>
