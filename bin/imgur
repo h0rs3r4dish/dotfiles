@@ -4,6 +4,7 @@ require 'net/http'
 
 module Imgur
 	class Image
+		attr_reader :id, :url
 		def initialize(id)
 			@id = id
 			@url = "http://i.imgur.com/#{id}"
@@ -22,6 +23,7 @@ module Imgur
 		end
 	end
 	class Set
+		attr_reader :id, :images
 		def initialize(id,url="a")
 			@id = id
 			@images = Net::HTTP.get(
@@ -37,15 +39,16 @@ module Imgur
 			}
 		end
 		def get_data
-			@images.map { |img|
-				img.get_data
-			}
+			@images.map { |img| img.get_data }
 		end
 		def save(location, format, message=false)
 			puts "Saving #{@images.length} images" if message
 			@images.map { |img|
 				img.save(location, format, message)
 			}
+		end
+		def url
+			@images.map { |image| image.url }
 		end
 	end
 end
@@ -59,6 +62,7 @@ Options
   -f fmt  Image format (default: 'png')
   -h      Help; display this message
   -o dir  Save to 'dir', which is created if needed (default: '.')
+  -u      Print the URL only, without saving images
   -v      Be more verbose
 EOF
 	if ARGV.length == 0 then
@@ -70,6 +74,7 @@ EOF
 		:f => 'png',	# format
 		:h => false, 	# help
 		:o => '.',		# output directory
+		:u => false,    # URL only
 		:v => false,	# verbose 
 	}
 	i = -1; while i < ARGV.length
@@ -120,11 +125,18 @@ EOF
 			}
 			next
 		end
-		imgur_id = imgur_id.sub('http://','').sub('www.','').sub('imgur.com/','')
-		if options[:a] then
-			Imgur::Set.new(imgur_id).save(options[:o], options[:f], options[:v])
+		imgur_id = imgur_id.sub(/^http:\/\//,'').sub('www.','').sub('imgur.com/','')
+		puts "Imgur ID: #{imgur_id}"
+		# In the form of "t/ididi" where "t" is the type (a -> album, i -> images)
+		album = imgur_id[0] == 'a' or imgur_id.include? ',' or options[:a]
+		puts "Is#{(album) ? ' ' : ' not'} an album"
+		imgur_id.sub!(/^[a-z]\//,'')
+		puts "Final ID: #{imgur_id}"
+		imgur_obj = (album) ? Imgur::Set.new(imgur_id) : Imgur::Image.new(imgur_id)
+		unless options[:u] then
+			imgur_obj.save(options[:o], options[:f], options[:v])
 		else
-			Imgur::Image.new(imgur_id).save(options[:o],options[:f],options[:v])
+			puts imgur_obj.url
 		end
 	}
 end
