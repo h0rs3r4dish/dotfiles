@@ -5,8 +5,9 @@ require 'net/http'
 module Imgur
 	class Image
 		attr_reader :id, :url
+		attr_accessor :filename
 		def initialize(id)
-			@id = id
+			@id = @filename = id
 			@url = "http://i.imgur.com/#{id}"
 			@data = nil
 		end
@@ -15,19 +16,21 @@ module Imgur
 		end
 		def save(location, format, message=false)
 			@fmt = format
-			puts "Saving #{@id}.#{format} from <#{@url}>" if message
+			puts "Saving #{@filename}.#{format} from <#{@url}>" if message
 			get_data if @data.nil?
-			File.open("#{location}/#{@id}.#{format}", 'w') do |f|
+			File.open("#{location}/#{@filename}.#{format}", 'w') do |f|
 				f.puts @data
 			end
 		end
 	end
 	class Set
+		include Enumerable
 		attr_reader :id, :images
+
 		def initialize(id,url="a")
 			@id = id
 			@images = Net::HTTP.get(
-				URI.parse("http://imgur.com/#{url}/#{@id}")
+				URI.parse("http://imgur.com/#{url}/#{@id}/layout/blog")
 			).split("\n").select { |line|
 				line.scan('<a href="/download/').length > 0
 			}.map { |line|
@@ -49,6 +52,9 @@ module Imgur
 		end
 		def url
 			@images.map { |image| image.url }
+		end
+		def each
+			@images.each { |i| yield i }
 		end
 	end
 end
@@ -74,6 +80,7 @@ EOF
 		:f => 'png',	# format
 		:h => false, 	# help
 		:o => '.',		# output directory
+		:s => false,	# sequential naming
 		:u => false,    # URL only
 		:v => false,	# verbose 
 	}
@@ -126,15 +133,23 @@ EOF
 			next
 		end
 		imgur_id = imgur_id.sub(/^http:\/\//,'').sub('www.','').sub('imgur.com/','')
-		puts "Imgur ID: #{imgur_id}"
+		puts "Imgur ID: #{imgur_id}" if options[:v]
 		# In the form of "t/ididi" where "t" is the type (a -> album, i -> images)
 		album = imgur_id[0] == 'a' or imgur_id.include? ',' or options[:a]
-		puts "Is#{(album) ? ' ' : ' not'} an album"
+		puts "Is#{(album) ? '' : ' not'} an album" if options[:v]
 		imgur_id.sub!(/^[a-z]\//,'')
-		puts "Final ID: #{imgur_id}"
+		puts "Final ID: #{imgur_id}" if options[:v]
 		imgur_obj = (album) ? Imgur::Set.new(imgur_id) : Imgur::Image.new(imgur_id)
 		unless options[:u] then
-			imgur_obj.save(options[:o], options[:f], options[:v])
+			save_args = [ options[:o], options[:f], options[:v] ]
+			if options[:s] then
+				imgur_obj.each_with_index { |image, index|
+					image.filename = index
+					image.save *save_args
+				}
+			else
+				imgur_obj.save *save_args
+			end
 		else
 			puts imgur_obj.url
 		end
