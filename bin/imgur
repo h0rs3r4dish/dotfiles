@@ -54,7 +54,7 @@ module Imgur
 			@images.map { |image| image.url }
 		end
 		def each
-			@images.each { |i| yield i }
+			@images.each
 		end
 	end
 end
@@ -63,11 +63,20 @@ if __FILE__ == $0 then
 	help = <<EOF
 Usage: #{$0.split('/').last} [-ahov] id1 [idN...]
 
+This utility saves images from the Imgur site. It handles both individual files
+and albums (groupds of images). An ID can be either just an image ID (such as
+"0yjspl"), a segment of a URL ("a/0yjspl"), or an entire Imgur URL
+("http://www.imgur.com/a/0yjspl"). Which form should be used depends on whether
+an album is being downloaded or not: only the full URL or URL segments can
+guess that there is an image group, and image IDs alone are assumed to be lone
+images.
+
 Options
   -a      The IDs are albums (default: off)
   -f fmt  Image format (default: 'png')
   -h      Help; display this message
   -o dir  Save to 'dir', which is created if needed (default: '.')
+  -s      Sequentially name images in an album
   -u      Print the URL only, without saving images
   -v      Be more verbose
 EOF
