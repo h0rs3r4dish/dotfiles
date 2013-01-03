@@ -14,6 +14,10 @@ set tabstop=4 shiftwidth=4
 set autoindent
 " set cindent " Not so much...
 
+" Folding
+set foldmethod=indent
+set nofoldenable
+
 " Allow buffer switching without saving
 set hidden
 
@@ -40,6 +44,8 @@ nnoremap <silent> <leader>n :set nonumber!<cr>
 map <silent> <C-E> :call ToggleVExplorer()<cr>
 " word count
 map <leader>wc :echo system("wc -w " . expand("%"))<cr>
+" Toggle current fold
+nnoremap <Space> za
 
 " Flip backspace and ^W (delete word)
 "inoremap <BS> <C-W>
